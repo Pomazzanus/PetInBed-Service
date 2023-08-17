@@ -1,6 +1,9 @@
 package com.example.PiB;
 
+import org.springframework.data.annotation.Id;
+
 public class Pet {
+    @Id
     private Long id;
     private String petName;
 
