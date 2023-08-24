@@ -1,0 +1,1 @@
+INSERT INTO Pet(ID, PET_NAME) VALUES (99, 'Antonio');
