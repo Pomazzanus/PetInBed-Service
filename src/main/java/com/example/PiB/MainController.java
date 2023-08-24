@@ -30,6 +30,16 @@ public class MainController {
         }
     }
 
+    @PostMapping
+    private ResponseEntity<Void> createPet(@RequestBody Pet newPetRequest, UriComponentsBuilder ucb) {
+        Pet savedPet = petRepo.save(newPetRequest);
+        URI locationOfNewCashCard = ucb
+                .path("pet/{id}")
+                .buildAndExpand(savedPet.getId())
+                .toUri();
+        return ResponseEntity.created(locationOfNewCashCard).build();
+    }
+
     /*@GetMapping("/")
     public ResponseEntity<List<Pet>> getAll(){
         Pet doggo = new Pet(1L, "Antoha");
