@@ -1,5 +1,7 @@
 package com.example.PiB.Repository;
 import com.example.PiB.Pet;
 import org.springframework.data.repository.CrudRepository;
-public interface PetRepository extends CrudRepository<Pet,Long>{
+import org.springframework.data.repository.PagingAndSortingRepository;
+
+public interface PetRepository extends CrudRepository<Pet,Long>, PagingAndSortingRepository<Pet,Long> {
 }

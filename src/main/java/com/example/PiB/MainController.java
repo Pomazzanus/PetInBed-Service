@@ -1,14 +1,13 @@
 package com.example.PiB;
-
-//import com.example.PiB.Repository.PetRepository;
 import com.example.PiB.Repository.PetRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
-
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,6 +29,17 @@ public class MainController {
         }
     }
 
+    @GetMapping
+    public ResponseEntity<List<Pet>> findAll(Pageable pageable) {
+        Page<Pet> page = petRepo.findAll(
+                PageRequest.of(
+                        pageable.getPageNumber(),
+                        pageable.getPageSize(),
+                        pageable.getSortOr(Sort.by(Sort.Direction.ASC, "petName"))
+                ));
+        return ResponseEntity.ok(page.getContent());
+    }
+
     @PostMapping
     private ResponseEntity<Void> createPet(@RequestBody Pet newPetRequest, UriComponentsBuilder ucb) {
         Pet savedPet = petRepo.save(newPetRequest);
@@ -39,27 +49,4 @@ public class MainController {
                 .toUri();
         return ResponseEntity.created(locationOfNewCashCard).build();
     }
-
-    /*@GetMapping("/")
-    public ResponseEntity<List<Pet>> getAll(){
-        Pet doggo = new Pet(1L, "Antoha");
-        Pet catto = new Pet(2L, "Artemka");
-        Pet doggonio = new Pet(3L, "Alyoshka");
-        Pet cattonio = new Pet(4L, "Andreika");
-        List<Pet> pets = new ArrayList<Pet>();
-        pets.add(doggo);
-        pets.add(catto);
-        pets.add(doggonio);
-        pets.add(cattonio);
-        return ResponseEntity.ok(pets);
-    }
-    @PostMapping
-    private ResponseEntity<Void> createCashCard(@RequestBody Pet newPetRequest, UriComponentsBuilder ucb) {
-        Pet savedPet = PetRepository.save(newPetRequest);
-        URI locationOfNewPet = ucb
-                .path("Pet/{petId}")
-                .buildAndExpand(savedPet.getId())
-                .toUri();
-        return ResponseEntity.created(locationOfNewPet).build();
-    } */
 }
