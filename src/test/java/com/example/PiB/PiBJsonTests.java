@@ -26,11 +26,11 @@ public class PiBJsonTests {
     @BeforeEach
     void setUp() {
         petArr = Arrays.array(
-                new Pet(99L, "Antonio"),
-                new Pet(100L, "Valerio"),
-                new Pet(101L, "Egorio"),
-                new Pet(102L, "Vladimio"),
-                new Pet(103L, "Eugenio"));
+                new Pet(99L, "Antonio", "Pomazzanus"),
+                new Pet(100L, "Valerio", "Pomazzanus"),
+                new Pet(101L, "Egorio", "Pomazzanus"),
+                new Pet(102L, "Vladimio", "Pomazzanus"),
+                new Pet(103L, "Eugenio", "Pomazzanus"));
     }
 
     @Test
@@ -43,11 +43,11 @@ public class PiBJsonTests {
     void PetListDeserializationTest() throws IOException {
         String expected="""
                 [
-                   {"id": 99, "petName": "Antonio" },
-                   {"id": 100, "petName": "Valerio" },
-                   {"id": 101, "petName": "Egorio" },
-                   {"id": 102, "petName": "Vladimio" },
-                   {"id": 103, "petName": "Eugenio" }
+                   {"id": 99, "petName": "Antonio", "owner": "Pomazzanus" },
+                   {"id": 100, "petName": "Valerio", "owner": "Pomazzanus" },
+                   {"id": 101, "petName": "Egorio", "owner": "Pomazzanus" },
+                   {"id": 102, "petName": "Vladimio", "owner": "Pomazzanus" },
+                   {"id": 103, "petName": "Eugenio", "owner": "Pomazzanus" }
                 ]
                 """;
         assertThat(jsonList.parse(expected)).isEqualTo(petArr);
@@ -71,10 +71,11 @@ public class PiBJsonTests {
         String expected = """
                 {
                     "id": 99,
-                    "petName": "Antonio"
+                    "petName": "Antonio",
+                    "owner": "Pomazzanus"
                 }
                 """;
-        assertThat(json.parse(expected)).isEqualTo(new Pet(99L,"Antonio"));
+        assertThat(json.parse(expected)).isEqualTo(new Pet(99L,"Antonio", "Pomazzanus"));
         assertThat(json.parseObject(expected).getId()).isEqualTo(99L);
         assertThat(json.parseObject(expected).getPetName()).isEqualTo("Antonio");
     }

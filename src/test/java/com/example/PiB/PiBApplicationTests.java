@@ -28,6 +28,8 @@ class PiBApplicationTests {
 		assertThat(id).isEqualTo(99);
 		String petName = documentContext.read("$.petName");
 		assertThat(petName).isEqualTo("Antonio");
+		String owner = documentContext.read("$.owner");
+		assertThat(owner).isEqualTo("Pomazzanus");
 	}
 
 	@Test
@@ -40,7 +42,7 @@ class PiBApplicationTests {
 	@DirtiesContext
 	@Test
 	void shouldCreateANewPet() {
-		Pet newPet = new Pet(null, "Dominic");
+		Pet newPet = new Pet(null, "Dominic", "Pomazzanus");
 		ResponseEntity<Void> createResponse = restTemplate.postForEntity("/pet", newPet, Void.class);
 		assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		URI locationOfNewCashCard = createResponse.getHeaders().getLocation();
@@ -50,8 +52,10 @@ class PiBApplicationTests {
 		DocumentContext documentContext = JsonPath.parse(getResponse.getBody());
 		Number id = documentContext.read("$.id");
 		String petName = documentContext.read("$.petName");
+		String owner = documentContext.read("$.owner");
 		assertThat(id).isNotNull();
 		assertThat(petName).isEqualTo("Dominic");
+		assertThat(owner).isEqualTo("Pomazzanus");
 	}
 	@Test
 	void shouldReturnAllPetsWhenListIsRequested() {
