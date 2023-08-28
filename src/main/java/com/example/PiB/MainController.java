@@ -1,4 +1,5 @@
 package com.example.PiB;
+
 import com.example.PiB.Repository.PetRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -10,7 +11,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
 import java.security.Principal;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/pet")
@@ -22,9 +22,9 @@ public class MainController {
     }
     @GetMapping("/{id}")
     public ResponseEntity<Pet> findById(@PathVariable Long id, Principal principal){
-        Optional<Pet> petOptional = Optional.ofNullable(petRepo.findByIdAndOwner(id, principal.getName()));
-        if (petOptional.isPresent()) {
-            return ResponseEntity.ok(petOptional.get());
+        Pet pet = findPet(id, principal);
+        if (pet != null) {
+            return ResponseEntity.ok(pet);
         } else {
             return ResponseEntity.notFound().build();
         }
@@ -50,5 +50,20 @@ public class MainController {
                 .buildAndExpand(savedPet.getId())
                 .toUri();
         return ResponseEntity.created(locationOfNewCashCard).build();
+    }
+
+    @PutMapping("/{id}")
+    private ResponseEntity<Void> putPet(@PathVariable Long id, @RequestBody Pet updatePet, Principal principal){
+        Pet pet = findPet(id, principal);
+        if(pet != null){
+            Pet updatedPet = new Pet(pet.getId(), updatePet.getPetName(), principal.getName());
+            petRepo.save(updatedPet);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
+    private Pet findPet(Long id, Principal principal) {
+        return petRepo.findByIdAndOwner(id, principal.getName());
     }
 }

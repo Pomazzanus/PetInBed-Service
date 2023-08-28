@@ -6,6 +6,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
@@ -65,6 +67,38 @@ class PiBApplicationTests {
 		assertThat(petName).isEqualTo("Dominic");
 		assertThat(owner).isEqualTo("Pomazzanus");
 	}
+
+	@Test
+	@DirtiesContext
+	void shouldUpdateAnExistingPet() {
+		Pet petUpdate = new Pet(null, "Dmitrio", null);
+		HttpEntity<Pet> request = new HttpEntity<>(petUpdate);
+		ResponseEntity<Void> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.exchange("/pet/99", HttpMethod.PUT, request, Void.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+
+		ResponseEntity<String> getResponse = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity("/pet/99", String.class);
+		assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+		DocumentContext documentContext = JsonPath.parse(getResponse.getBody());
+		Number id = documentContext.read("$.id");
+		String petName = documentContext.read("$.petName");
+		assertThat(id).isEqualTo(99);
+		assertThat(petName).isEqualTo("Dmitrio");
+	}
+
+	@Test
+	void shouldNotUpdateACashCardThatDoesNotExist(){
+		Pet petUpdate = new Pet(null, "Dmitrio", null);
+		HttpEntity<Pet> request = new HttpEntity<>(petUpdate);
+		ResponseEntity<Void> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.exchange("/pet/9999999", HttpMethod.PUT, request, Void.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
 	@Test
 	void shouldReturnAllPetsWhenListIsRequested() {
 		ResponseEntity<String> response = restTemplate
