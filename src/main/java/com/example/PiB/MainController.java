@@ -63,6 +63,15 @@ public class MainController {
         return ResponseEntity.notFound().build();
     }
 
+    @DeleteMapping("/{id}")
+    private ResponseEntity<Void> deletePet(@PathVariable Long id, Principal principal){
+        if (petRepo.existsByIdAndOwner(id, principal.getName())) {
+            petRepo.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+
     private Pet findPet(Long id, Principal principal) {
         return petRepo.findByIdAndOwner(id, principal.getName());
     }

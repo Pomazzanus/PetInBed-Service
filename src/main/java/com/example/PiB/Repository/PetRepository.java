@@ -8,4 +8,5 @@ import org.springframework.data.repository.PagingAndSortingRepository;
 public interface PetRepository extends CrudRepository<Pet,Long>, PagingAndSortingRepository<Pet,Long> {
     Pet findByIdAndOwner(Long id, String owner);
     Page<Pet> findByOwner(String owner, PageRequest petName);
+    boolean existsByIdAndOwner(Long id, String owner);
 }

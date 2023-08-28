@@ -166,4 +166,37 @@ class PiBApplicationTests {
 				.getForEntity("/pet/104", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 	}
+
+	@Test
+	@DirtiesContext
+	void shouldDeleteAnExistingPet(){
+		ResponseEntity<Void> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.exchange("/pet/99", HttpMethod.DELETE, null, Void.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+		ResponseEntity<String> getResponse = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity("/pet/99", String.class);
+		assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	void shouldNotDeleteAPetThatDoesNotExist() {
+		ResponseEntity<Void> deleteResponse = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.exchange("/pet/99999", HttpMethod.DELETE, null, Void.class);
+		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+	}
+
+	@Test
+	void shouldNotAllowDeletionOfPetsTheyDoNotOwn() {
+		ResponseEntity<Void> deleteResponse = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.exchange("/pet/104", HttpMethod.DELETE, null, Void.class);
+		assertThat(deleteResponse.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+		ResponseEntity<String> getResponse = restTemplate
+				.withBasicAuth("Sunazzamop", "xyz789")
+				.getForEntity("/pet/104", String.class);
+		assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
+	}
 }
