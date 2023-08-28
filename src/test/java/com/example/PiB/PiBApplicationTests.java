@@ -21,7 +21,9 @@ class PiBApplicationTests {
 
 	@Test
 	void shouldReturnAPetWhenDataIsSaved() {
-		ResponseEntity<String> response = restTemplate.getForEntity("/pet/99", String.class);
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity("/pet/99", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		Number id = documentContext.read("$.id");
@@ -34,7 +36,9 @@ class PiBApplicationTests {
 
 	@Test
 	void shouldNotReturnAPetWithAnUnknownId() {
-		ResponseEntity<String> response = restTemplate.getForEntity("/pet/1000", String.class);
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity("/pet/1000", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 		assertThat(response.getBody()).isBlank();
 	}
@@ -42,11 +46,15 @@ class PiBApplicationTests {
 	@DirtiesContext
 	@Test
 	void shouldCreateANewPet() {
-		Pet newPet = new Pet(null, "Dominic", "Pomazzanus");
-		ResponseEntity<Void> createResponse = restTemplate.postForEntity("/pet", newPet, Void.class);
+		Pet newPet = new Pet(null, "Dominic", null);
+		ResponseEntity<Void> createResponse = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.postForEntity("/pet", newPet, Void.class);
 		assertThat(createResponse.getStatusCode()).isEqualTo(HttpStatus.CREATED);
 		URI locationOfNewCashCard = createResponse.getHeaders().getLocation();
-		ResponseEntity<String> getResponse = restTemplate.getForEntity(locationOfNewCashCard, String.class);
+		ResponseEntity<String> getResponse = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity(locationOfNewCashCard, String.class);
 		assertThat(getResponse.getStatusCode()).isEqualTo(HttpStatus.OK);
 
 		DocumentContext documentContext = JsonPath.parse(getResponse.getBody());
@@ -59,7 +67,9 @@ class PiBApplicationTests {
 	}
 	@Test
 	void shouldReturnAllPetsWhenListIsRequested() {
-		ResponseEntity<String> response = restTemplate.getForEntity("/pet", String.class);
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity("/pet", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		int petCount = documentContext.read("$.length()");
@@ -72,7 +82,9 @@ class PiBApplicationTests {
 
 	@Test
 	void shouldReturnAPageOfPets() {
-		ResponseEntity<String> response = restTemplate.getForEntity("/pet?page=0&size=1", String.class);
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity("/pet?page=0&size=1", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		JSONArray page = documentContext.read("$[*]");
@@ -81,12 +93,43 @@ class PiBApplicationTests {
 
 	@Test
 	void shouldReturnASortedPageOfPets() {
-		ResponseEntity<String> response = restTemplate.getForEntity("/pet?page=0&size=1&sort=petName,asc", String.class);
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity("/pet?page=0&size=1&sort=petName,asc", String.class);
 		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
 		DocumentContext documentContext = JsonPath.parse(response.getBody());
 		JSONArray read = documentContext.read("$[*]");
 		assertThat(read.size()).isEqualTo(1);
 		String petName = documentContext.read("$[0].petName");
 		assertThat(petName).isEqualTo("Antonio");
+	}
+
+	@Test
+	void shouldNotReturnAPetWhenUsingBadCredentials() {
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("BAD-USER", "abc123")
+				.getForEntity("/pet/99", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+		response = restTemplate
+				.withBasicAuth("Pomazzanus", "BAD-PASSWORD")
+				.getForEntity("/pet/99", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+	}
+
+	@Test
+	void shouldRejectUsersWhoAreNotPetOwners() {
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("hank-owns-no-cards", "qrs456")
+				.getForEntity("/pet/99", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+	}
+
+	@Test
+	void shouldNotAllowAccessToCashCardsTheyDoNotOwn() {
+		ResponseEntity<String> response = restTemplate
+				.withBasicAuth("Pomazzanus", "abc123")
+				.getForEntity("/pet/104", String.class);
+		assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
 	}
 }

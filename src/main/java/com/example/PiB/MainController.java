@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 import java.net.URI;
+import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,8 +21,8 @@ public class MainController {
         this.petRepo = petRepository;
     }
     @GetMapping("/{id}")
-    public ResponseEntity<Pet> findById(@PathVariable Long id){
-        Optional<Pet> petOptional = petRepo.findById(id);
+    public ResponseEntity<Pet> findById(@PathVariable Long id, Principal principal){
+        Optional<Pet> petOptional = Optional.ofNullable(petRepo.findByIdAndOwner(id, principal.getName()));
         if (petOptional.isPresent()) {
             return ResponseEntity.ok(petOptional.get());
         } else {
@@ -30,8 +31,8 @@ public class MainController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Pet>> findAll(Pageable pageable) {
-        Page<Pet> page = petRepo.findAll(
+    public ResponseEntity<List<Pet>> findAll(Pageable pageable, Principal principal) {
+        Page<Pet> page = petRepo.findByOwner(principal.getName(),
                 PageRequest.of(
                         pageable.getPageNumber(),
                         pageable.getPageSize(),
@@ -41,8 +42,9 @@ public class MainController {
     }
 
     @PostMapping
-    private ResponseEntity<Void> createPet(@RequestBody Pet newPetRequest, UriComponentsBuilder ucb) {
-        Pet savedPet = petRepo.save(newPetRequest);
+    private ResponseEntity<Void> createPet(@RequestBody Pet newPetRequest, UriComponentsBuilder ucb, Principal principal) {
+        Pet petWithOwner = new Pet(null, newPetRequest.getPetName(), principal.getName());
+        Pet savedPet = petRepo.save(petWithOwner);
         URI locationOfNewCashCard = ucb
                 .path("pet/{id}")
                 .buildAndExpand(savedPet.getId())
